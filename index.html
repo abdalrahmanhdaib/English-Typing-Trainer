@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Typing Trainer - برنامج التدريب على الكتابة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .level-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .level-btn {
+            padding: 15px;
+            border: 3px solid #667eea;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .level-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .level-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .level-btn.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #ccc;
+            color: #999;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .game-area {
+            display: none;
+        }
+
+        .game-area.active {
+            display: block;
+        }
+
+        .text-display {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+            line-height: 1.6;
+            min-height: 100px;
+            direction: ltr;
+        }
+
+        .char {
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .char.correct {
+            color: #28a745;
+        }
+
+        .char.incorrect {
+            color: #dc3545;
+            background: #ffe6e6;
+        }
+
+        .char.current {
+            background: #667eea;
+            color: white;
+            padding: 0 2px;
+        }
+
+        .input-area {
+            width: 100%;
+            padding: 20px;
+            font-size: 18px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .input-area:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+            border-radius: 10px;
+        }
+
+        .level-complete {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .level-complete.show {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .achievement {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 English Typing Trainer</h1>
+        <p class="subtitle">برنامج التدريب على الكتابة باللغة الإنجليزية</p>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">المستوى الحالي</div>
+                <div class="stat-value" id="currentLevel">1</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">السرعة (كلمة/دقيقة)</div>
+                <div class="stat-value" id="wpm">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">الدقة</div>
+                <div class="stat-value" id="accuracy">100%</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">النقاط</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+        </div>
+
+        <div class="level-selector" id="levelSelector">
+            <button class="level-btn active" data-level="1">المستوى 1<br>حروف بسيطة</button>
+            <button class="level-btn locked" data-level="2">المستوى 2<br>كلمات قصيرة</button>
+            <button class="level-btn locked" data-level="3">المستوى 3<br>جمل بسيطة</button>
+            <button class="level-btn locked" data-level="4">المستوى 4<br>جمل متوسطة</button>
+            <button class="level-btn locked" data-level="5">المستوى 5<br>نصوص متقدمة</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <div class="text-display" id="textDisplay"></div>
+            <input type="text" class="input-area" id="inputArea" placeholder="ابدأ الكتابة هنا..." disabled>
+            <div class="controls">
+                <button class="btn btn-primary" id="startBtn">ابدأ التدريب</button>
+                <button class="btn btn-secondary" id="resetBtn">إعادة</button>
+            </div>
+        </div>
+
+        <div class="level-complete" id="levelComplete">
+            <h2>🎉 أحسنت! لقد أتممت المستوى!</h2>
+            <div id="achievements"></div>
+            <button class="btn btn-primary" id="nextLevelBtn" style="margin-top: 20px;">المستوى التالي</button>
+        </div>
+    </div>
+
+    <script>
+        const levels = {
+            1: {
+                name: 'حروف بسيطة',
+                texts: [
+                    'aaa sss ddd fff',
+                    'jjj kkk lll',
+                    'asdf jkl',
+                    'add fall lad',
+                    'ask dad jazz'
+                ],
+                requiredAccuracy: 90,
+                requiredWPM: 15
+            },
+            2: {
+                name: 'كلمات قصيرة',
+                texts: [
+                    'the cat sat on mat',
+                    'dog run fast and jump',
+                    'she has red bag',
+                    'we can see sun',
+                    'they will go home'
+                ],
+                requiredAccuracy: 85,
+                requiredWPM: 20
+            },
+            3: {
+                name: 'جمل بسيطة',
+                texts: [
+                    'The quick brown fox jumps.',
+                    'I like to read books every day.',
+                    'She walks to school in morning.',
+                    'We play games on weekend.',
+                    'They study English together.'
+                ],
+                requiredAccuracy: 80,
+                requiredWPM: 25
+            },
+            4: {
+                name: 'جمل متوسطة',
+                texts: [
+                    'Learning English is important for communication.',
+                    'Practice makes perfect when learning new skills.',
+                    'Technology has changed the way we live today.',
+                    'Reading books helps improve vocabulary and grammar.',
+                    'Hard work and dedication lead to success.'
+                ],
+                requiredAccuracy: 80,
+                requiredWPM: 30
+            },
+            5: {
+                name: 'نصوص متقدمة',
+                texts: [
+                    'The advancement of technology has revolutionized modern education systems.',
+                    'Environmental conservation requires collective effort from all communities worldwide.',
+                    'Artificial intelligence continues to transform various industries and sectors.',
+                    'Cultural diversity enriches societies and promotes mutual understanding.',
+                    'Sustainable development goals aim to create a better future for everyone.'
+                ],
+                requiredAccuracy: 75,
+                requiredWPM: 35
+            }
+        };
+
+        let currentLevel = 1;
+        let currentTextIndex = 0;
+        let startTime = null;
+        let isPlaying = false;
+        let totalScore = 0;
+        let unlockedLevels = [1];
+        let errors = 0;
+        let correctChars = 0;
+
+        const elements = {
+            levelSelector: document.getElementById('levelSelector'),
+            gameArea: document.getElementById('gameArea'),
+            textDisplay: document.getElementById('textDisplay'),
+            inputArea: document.getElementById('inputArea'),
+            startBtn: document.getElementById('startBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            currentLevelDisplay: document.getElementById('currentLevel'),
+            wpmDisplay: document.getElementById('wpm'),
+            accuracyDisplay: document.getElementById('accuracy'),
+            scoreDisplay: document.getElementById('score'),
+            progressFill: document.getElementById('progressFill'),
+            levelComplete: document.getElementById('levelComplete'),
+            achievements: document.getElementById('achievements'),
+            nextLevelBtn: document.getElementById('nextLevelBtn')
+        };
+
+        function init() {
+            elements.levelSelector.addEventListener('click', handleLevelSelect);
+            elements.startBtn.addEventListener('click', startGame);
+            elements.resetBtn.addEventListener('click', resetGame);
+            elements.inputArea.addEventListener('input', handleInput);
+            elements.nextLevelBtn.addEventListener('click', goToNextLevel);
+            
+            loadGame();
+            updateLevelButtons();
+        }
+
+        function handleLevelSelect(e) {
+            if (e.target.classList.contains('level-btn') && !e.target.classList.contains('locked')) {
+                const level = parseInt(e.target.dataset.level);
+                currentLevel = level;
+                currentTextIndex = 0;
+                elements.currentLevelDisplay.textContent = currentLevel;
+                updateLevelButtons();
+                resetGame();
+            }
+        }
+
+        function updateLevelButtons() {
+            const buttons = elements.levelSelector.querySelectorAll('.level-btn');
+            buttons.forEach(btn => {
+                const level = parseInt(btn.dataset.level);
+                btn.classList.remove('active', 'locked');
+                if (level === currentLevel) {
+                    btn.classList.add('active');
+                } else if (!unlockedLevels.includes(level)) {
+                    btn.classList.add('locked');
+                }
+            });
+        }
+
+        function startGame() {
+            if (isPlaying) return;
+            
+            isPlaying = true;
+            startTime = Date.now();
+            errors = 0;
+            correctChars = 0;
+            
+            elements.gameArea.classList.add('active');
+            elements.inputArea.disabled = false;
+            elements.inputArea.value = '';
+            elements.inputArea.focus();
+            elements.startBtn.textContent = 'جاري التدريب...';
+            elements.startBtn.disabled = true;
+            
+            displayText();
+        }
+
+        function displayText() {
+            const text = levels[currentLevel].texts[currentTextIndex];
+            elements.textDisplay.innerHTML = text.split('').map((char, idx) => 
+                `<span class="char ${idx === 0 ? 'current' : ''}" data-index="${idx}">${char}</span>`
+            ).join('');
+        }
+
+        function handleInput(e) {
+            if (!isPlaying) return;
+            
+            const input = e.target.value;
+            const text = levels[currentLevel].texts[currentTextIndex];
+            const chars = elements.textDisplay.querySelectorAll('.char');
+            
+            chars.forEach((char, idx) => {
+                char.classList.remove('correct', 'incorrect', 'current');
+                
+                if (idx < input.length) {
+                    if (input[idx] === text[idx]) {
+                        char.classList.add('correct');
+                        if (idx === input.length - 1) correctChars++;
+                    } else {
+                        char.classList.add('incorrect');
+                        if (idx === input.length - 1) errors++;
+                    }
+                } else if (idx === input.length) {
+                    char.classList.add('current');
+                }
+            });
+            
+            updateStats();
+            
+            if (input === text) {
+                completeText();
+            }
+        }
+
+        function updateStats() {
+            const elapsedTime = (Date.now() - startTime) / 1000 / 60;
+            const words = correctChars / 5;
+            const wpm = Math.round(words / elapsedTime) || 0;
+            const accuracy = Math.round((correctChars / (correctChars + errors)) * 100) || 100;
+            
+            elements.wpmDisplay.textContent = wpm;
+            elements.accuracyDisplay.textContent = accuracy + '%';
+        }
+
+        function completeText() {
+            currentTextIndex++;
+            const progress = (currentTextIndex / levels[currentLevel].texts.length) * 100;
+            elements.progressFill.style.width = progress + '%';
+            
+            if (currentTextIndex >= levels[currentLevel].texts.length) {
+                completeLevel();
+            } else {
+                elements.inputArea.value = '';
+                correctChars = 0;
+                errors = 0;
+                displayText();
+            }
+        }
+
+        function completeLevel() {
+            isPlaying = false;
+            elements.inputArea.disabled = true;
+            
+            const wpm = parseInt(elements.wpmDisplay.textContent);
+            const accuracy = parseInt(elements.accuracyDisplay.textContent);
+            
+            let stars = 0;
+            if (accuracy >= levels[currentLevel].requiredAccuracy && wpm >= levels[currentLevel].requiredWPM) {
+                stars = 3;
+            } else if (accuracy >= levels[currentLevel].requiredAccuracy - 5 && wpm >= levels[currentLevel].requiredWPM - 5) {
+                stars = 2;
+            } else if (accuracy >= 70 && wpm >= 10) {
+                stars = 1;
+            }
+            
+            const points = stars * 100 + wpm + accuracy;
+            totalScore += points;
+            elements.scoreDisplay.textContent = totalScore;
+            
+            let achievementHTML = `
+                <div class="achievement">⭐ النجوم: ${'⭐'.repeat(stars)}</div>
+                <div class="achievement">🎯 الدقة: ${accuracy}%</div>
+                <div class="achievement">⚡ السرعة: ${wpm} كلمة/دقيقة</div>
+                <div class="achievement">🏆 النقاط: +${points}</div>
+            `;
+            
+            elements.achievements.innerHTML = achievementHTML;
+            elements.levelComplete.classList.add('show');
+            
+            if (stars >= 2 && currentLevel < 5 && !unlockedLevels.includes(currentLevel + 1)) {
+                unlockedLevels.push(currentLevel + 1);
+                updateLevelButtons();
+            }
+            
+            saveGame();
+        }
+
+        function goToNextLevel() {
+            elements.levelComplete.classList.remove('show');
+            if (unlockedLevels.includes(currentLevel + 1)) {
+                currentLevel++;
+                elements.currentLevelDisplay.textContent = currentLevel;
+                updateLevelButtons();
+            }
+            resetGame();
+        }
+
+        function resetGame() {
+            isPlaying = false;
+            currentTextIndex = 0;
+            startTime = null;
+            errors = 0;
+            correctChars = 0;
+            
+            elements.inputArea.value = '';
+            elements.inputArea.disabled = true;
+            elements.startBtn.textContent = 'ابدأ التدريب';
+            elements.startBtn.disabled = false;
+            elements.wpmDisplay.textContent = '0';
+            elements.accuracyDisplay.textContent = '100%';
+            elements.progressFill.style.width = '0%';
+            elements.levelComplete.classList.remove('show');
+            
+            displayText();
+        }
+
+        function saveGame() {
+            const gameData = {
+                currentLevel,
+                totalScore,
+                unlockedLevels
+            };
+            try {
+                const data = JSON.stringify(gameData);
+                console.log('Game saved:', data);
+            } catch (e) {
+                console.log('Save game data:', gameData);
+            }
+        }
+
+        function loadGame() {
+            console.log('Loading game...');
+        }
+
+        init();
+    </script>
+</body>
+</html>
